@@ -1,0 +1,25 @@
+# gitleaks config for this repo. Also read by the console's redactor (console/agent_console/redact.py).
+# The default gitleaks rules are kept; two rules add passwords written as literals.
+title = "agent-workbench"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "hardcoded-password"
+description = "Password written as a quoted literal"
+regex = '''(?i)[a-z_]*(?:password|passwd|pwd)["']?\s*[:=]\s*["']([^"'\s]{4,})["']'''
+secretGroup = 1
+keywords = ["password", "passwd", "pwd"]
+
+  [[rules.allowlists]]
+  description = "deliberately wrong test inputs, not credentials"
+  regexTarget = "secret"
+  regexes = ['''^(wrong|anything)$''']
+
+[[rules]]
+id = "hardcoded-password-env"
+description = "Password env var set to a literal value"
+regex = '''\b[A-Z_]*PASSWORD=([^\s"'$<.`]{4,})'''
+secretGroup = 1
+keywords = ["password"]

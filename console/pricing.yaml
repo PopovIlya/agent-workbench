@@ -1,0 +1,23 @@
+# Agent console price table: USD per 1M tokens, per model.
+#
+# ESTIMATES, not an invoice. Values are list prices as known when this file was written; check them against the current price page.
+# On Bedrock, a regional endpoint may cost more than the global one: set `regional_multiplier` (for example 1.10) if yours does.
+# The UI shows a cost as "≈ $X (estimate)"; when some entries carry another source (a checked price list, an invoice) as "partly estimate",
+# and when all do, as "list price" / that source.
+#
+# Matching (agent_console/pricing.py): the served model id is matched to a key by SUBSTRING, longest key first, so `claude-opus-5-5`,
+# `anthropic.claude-opus-5-5-v1:0` and `us.anthropic.claude-opus-5-5` all hit `opus-5-5`. An id that matches no key falls back to its tier
+# (`tier_defaults`) and the UI says "price by tier". An id with no tier shows "cost unknown".
+regional_multiplier: 1.0         # 1.0 = list price; raise it if your endpoint costs more
+models:
+  opus-5-5:   {input: 4.00, output: 20.00, cache_write_5m: 5.00,  cache_write_1h: 8.00, cache_read: 0.20, source: estimate}
+  sonnet-5-5: {input: 2.00, output: 10.00, cache_write_5m: 2.50,  cache_write_1h: 4.00, cache_read: 0.20, source: estimate}
+  haiku-5-5:  {input: 0.10, output: 0.50,  cache_write_5m: 0.125, cache_write_1h: 0.20, cache_read: 0.01, source: estimate,
+               over_100k: {input: 0.50, output: 2.50, cache_write_5m: 0.625, cache_write_1h: 1.00, cache_read: 0.05}}
+  opus-5:     {input: 5.00, output: 25.00, cache_write_5m: 6.25,  cache_write_1h: 10.00, cache_read: 0.50, source: estimate}
+  sonnet-5:   {input: 2.00, output: 10.00, cache_write_5m: 2.50,  cache_write_1h: 4.00, cache_read: 0.20, source: estimate}
+  haiku-4-5:  {input: 1.00, output: 5.00,  cache_write_5m: 1.25,  cache_write_1h: 2.00, cache_read: 0.10, source: estimate}
+tier_defaults:                   # used when the served model id matches none of the keys above
+  opus: opus-5-5
+  sonnet: sonnet-5-5
+  haiku: haiku-5-5
