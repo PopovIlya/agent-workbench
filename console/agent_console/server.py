@@ -17,12 +17,12 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import config, ctq_api, gold, queries
+from . import compare, config, ctq_api, gold, queries
 from .autoscore import AutoScorer
 from .pricing import Pricing
 from .store import Store
@@ -194,6 +194,17 @@ def create_app(store: Store | None = None, pricing: Pricing | None = None, port:
     @app.get("/")
     def index():
         return FileResponse(STATIC / "index.html", media_type="text/html")
+
+    @app.get("/compare")
+    def compare_page(a: str | None = None, b: str | None = None):
+        """Two tickets side by side, server-rendered (CON-027). Read-only; unknown key 404, missing key 422."""
+        if not a or not b:
+            return HTMLResponse(compare.render_error("Both ticket keys are needed: /compare?a=<KEY>&b=<KEY>."), status_code=422)
+        try:
+            res = compare.compare(st, pr, a, b)
+        except compare.UnknownKey as e:
+            return HTMLResponse(compare.render_error("Unknown ticket key: " + ", ".join(e.keys)), status_code=404)
+        return HTMLResponse(compare.render_html(res))
 
     @app.get("/static/{name}")
     def static(name: str):
