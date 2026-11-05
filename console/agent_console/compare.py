@@ -64,9 +64,11 @@ def _text(content: Any) -> str:
 
 def run_failed(path: str) -> bool:
     """A sub-agent run that did not complete: ended in an API error or a permission denial, or has no final reply (CON-035).
-    A final reply is a last assistant record with stop_reason end_turn."""
+    A final reply is a last assistant record with stop_reason end_turn, or one that hands back with a SubagentHandback call:
+    every sub-agent run in real logs ends that way (found by the post-run check on real logs; the run's own result is in the main log)."""
     bad = has_text = False
     stop = None
+    handback = False
     for o in _records(path):
         t = o.get("type")
         if t == "system":
@@ -82,13 +84,16 @@ def run_failed(path: str) -> bool:
             bad = False
             stop = msg.get("stop_reason")
             blocks = _blocks(o)
+            handback = any(b.get("type") == "tool_use" and b.get("name") == "SubagentHandback" for b in blocks)
             if any(b.get("type") == "text" and str(b.get("text") or "").strip() for b in blocks):
                 has_text = True
         elif t == "user" and isinstance(o.get("toolUseResult"), str):
             for b in _blocks(o):
                 if b.get("type") == "tool_result" and b.get("is_error") and _text(b.get("content")).startswith(DENIAL_PREFIXES):
                     bad = True
-    return bad or not has_text or not stop == "end_turn"
+    if bad:
+        return True
+    return not handback and (not has_text or stop != "end_turn")
 
 
 def _typed_by_person(o: dict[str, Any]) -> bool:

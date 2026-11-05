@@ -417,9 +417,6 @@ FAILING = {
     "api_error_system": dict(tail=_api_system),
     "permission_denial": dict(stop="tool_use", blocks=[tool_use("bash-1", "Bash", command="x")], tail=_denial),
     "no_final_reply": dict(stop="tool_use", blocks=text_block()),
-    # Agent decision (answer 37): narrowest reading of CON-035 is that a final reply is stop_reason end_turn only, so a run that
-    # ends on a SubagentHandback tool call (stop_reason tool_use) is a run with no final reply
-    "handback_call_is_not_a_final_reply": dict(stop="tool_use", blocks=[tool_use("hb-1", "SubagentHandback", message="PASS")]),
     # answer 3: a run with no final assistant reply is failed; an end_turn record with no text in it is no reply
     "end_turn_with_only_blank_text": dict(blocks=[{"type": "text", "text": "  \n "}]),
     "end_turn_with_only_non_text_blocks": dict(blocks=[{"type": "thinking", "thinking": "hm"}, tool_use("x-1", "Read", file_path="/x")]),
@@ -428,6 +425,8 @@ FAILING = {
     "api_error_after_a_normal_reply": dict(blocks=text_block(), tail=_api_assistant),
 }
 NOT_FAILING = {
+    # found by the post-run check on real logs: every real sub-agent run ends on a SubagentHandback call (stop_reason tool_use, no text)
+    "handback_call_is_a_final_reply": dict(stop="tool_use", blocks=[tool_use("hb-1", "SubagentHandback", message="PASS")]),
     "fail_verdict": dict(blocks=text_block("FAIL: criteria not met")),
     "blocked_verdict": dict(blocks=text_block("BLOCKED: need input")),
     "ordinary_tool_error": dict(blocks=text_block(), tail=lambda ag: [result("t9", 120, "SA", "exit 1", err=True, agent=ag)]),
