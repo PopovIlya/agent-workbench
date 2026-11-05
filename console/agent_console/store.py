@@ -105,6 +105,9 @@ class Store:
             self.db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
         self.db.execute("INSERT OR REPLACE INTO meta VALUES('tz', ?)", (config.tz_name(),))
         self.db.execute("INSERT OR REPLACE INTO meta VALUES('key_patterns', ?)", (key_sig,))
+        # Only recorded (never compared here): `compare` reads them to refuse an index built for another home or checkout.
+        self.db.execute("INSERT OR REPLACE INTO meta VALUES('home', ?)", (str(self.db_path.parent.resolve()),))
+        self.db.execute("INSERT OR REPLACE INTO meta VALUES('repo_root', ?)", (str(Path(self.repo).resolve()),))
         self.db.commit()
         try:
             os.chmod(self.db_path, 0o600)
@@ -211,6 +214,9 @@ class Store:
     def ingest(self) -> dict[str, int]:
         with self.lock:
             from datetime import datetime, timezone
+            # scan marker (CON-010 v3): committed before any raw row of this scan, removed in the commit of the final rebuild
+            self.db.execute("INSERT OR REPLACE INTO meta VALUES(?,?)", (f"scan:{os.getpid()}", datetime.now(timezone.utc).isoformat()))
+            self.db.commit()
             if config.claims_repo():
                 refresh_claims(config.claims_repo())
             files = self.discover()
@@ -231,6 +237,7 @@ class Store:
                 self.progress["files_done"] = i + 1
             self._load_worklogs()
             self.rebuild()
+            _clear_scan_markers(self.db)
             self.db.commit()
             now = datetime.now(timezone.utc).isoformat()
             self.progress.update(state="idle", initial=False, last_ingest=now, last_scan_ok=now, scans=self.progress["scans"] + 1)
@@ -418,20 +425,7 @@ class Store:
         for r in db.execute("SELECT run_id, ticket FROM tool_calls WHERE name='Bash' AND ticket_src='git' AND ticket IS NOT NULL"):
             git_tickets[r["run_id"]][r["ticket"]] += 1
         wts = tickets.worktree_branches(self.repo)
-        # Dated key evidence per run (for sub-runs that inherit from a long parent session: the key in force WHEN they started)
-        evidence: dict[str, list[tuple[str, str, str]]] = defaultdict(list)
-        for r in db.execute("SELECT run_id, ts, path, ticket, name, ticket_src FROM tool_calls "
-                            "WHERE (name IN ('Edit','Write') AND path IS NOT NULL) OR (name='Bash' AND ticket_src='git' AND ticket IS NOT NULL)"):
-            ts = _norm_ts(r["ts"]) or ""
-            if r["name"] == "Bash":
-                evidence[r["run_id"]].append((ts, r["ticket"], "git_command"))
-                continue
-            cm = tickets.CHANGE_FILE_RE.search(r["path"])
-            if cm:
-                evidence[r["run_id"]].append((ts, cm.group(1), "change_file"))
-            else:
-                for t in parser.TICKET_RE.findall(r["path"]):
-                    evidence[r["run_id"]].append((ts, t, "path"))
+        evidence = key_evidence(db, files)   # dated key evidence per run (a sub-run of a long parent session takes the key in force WHEN it started)
         cli = {r["run_id"]: r["usd"] for r in db.execute("SELECT * FROM cost_state")}
         wl = db.execute("SELECT start, end, ticket FROM worklog_req ORDER BY start, ticket").fetchall()
 
@@ -475,8 +469,6 @@ class Store:
                 "models": json.dumps(dict(models.get(rid, {}))), "requested_models": json.dumps(dict(reqm.get(rid, {}))),
                 "cli_cost_usd": cli.get(rid), "scope": None, "scope_reason": None, "ticket_via": None, "agent_setting": f["agent_setting"],
             }
-            if f["prompt_lead"] or f["prompt_ticket"]:
-                evidence[rid].append((_norm_ts(f["first_ts"]) or "", f["prompt_lead"] or f["prompt_ticket"], "prompt"))
         # A sub-run without a key of its own takes the parent's key IN FORCE WHEN IT STARTED (a parent session can run
         # for days across several tickets), else the parent's overall key.
         for r in rows.values():
@@ -579,6 +571,126 @@ class Store:
         found = flagmod.compute(rows, edits, errors, last_err, last_msg, roles, self.scope, expected, getattr(self, "_stalls", None))
         db.execute("DELETE FROM flags")
         db.executemany("INSERT INTO flags VALUES(?,?,?,?)", [(f.run_id, f.flag, f.severity, json.dumps(f.evidence)) for f in found])
+
+
+def key_evidence(db: sqlite3.Connection, files) -> dict[str, list[tuple[str, str, str]]]:
+    """Dated key evidence per run: {run_id: [(ts, key, source)]} from Edit/Write paths (change file or path key), git commands that name a
+    key, and the run's first prompt (`files` rows with run_id, first_ts, prompt_lead, prompt_ticket). Used by `Store.rebuild` (the key a sub-run
+    takes from its parent) and by the comparison (the key of a spawn that has no run file). `db` needs a Row factory."""
+    evidence: dict[str, list[tuple[str, str, str]]] = defaultdict(list)
+    for r in db.execute("SELECT run_id, ts, path, ticket, name, ticket_src FROM tool_calls "
+                        "WHERE (name IN ('Edit','Write') AND path IS NOT NULL) OR (name='Bash' AND ticket_src='git' AND ticket IS NOT NULL)"):
+        ts = _norm_ts(r["ts"]) or ""
+        if r["name"] == "Bash":
+            evidence[r["run_id"]].append((ts, r["ticket"], "git_command"))
+            continue
+        cm = tickets.CHANGE_FILE_RE.search(r["path"])
+        if cm:
+            evidence[r["run_id"]].append((ts, cm.group(1), "change_file"))
+        else:
+            for t in parser.TICKET_RE.findall(r["path"]):
+                evidence[r["run_id"]].append((ts, t, "path"))
+    for f in files:
+        if f["prompt_lead"] or f["prompt_ticket"]:
+            evidence[f["run_id"]].append((_norm_ts(f["first_ts"]) or "", f["prompt_lead"] or f["prompt_ticket"], "prompt"))
+    return evidence
+
+
+INDEX_VALUES = ("schema version", "time zone", "key patterns", "console home", "checkout")
+
+
+def _pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except (OSError, OverflowError, ValueError):
+        return False
+    return True
+
+
+SCAN_MARKER_MAX_AGE = 3600      # seconds: a marker older than this counts as dead even when its pid is alive (CON-010, Q-058)
+
+
+def _marker_stale(value: object) -> bool:
+    """True when the stored start time is older than the age bound (an unreadable time is not stale: the pid decides)."""
+    from datetime import datetime, timezone
+    try:
+        t = datetime.fromisoformat(str(value))
+    except ValueError:
+        return False
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - t).total_seconds() > SCAN_MARKER_MAX_AGE
+
+
+def _clear_scan_markers(db: sqlite3.Connection) -> None:
+    """Delete this process's scan marker and the markers of dead processes (no commit: the caller's transaction)."""
+    own = f"scan:{os.getpid()}"
+    for k, v in db.execute("SELECT k, v FROM meta WHERE k LIKE 'scan:%'").fetchall():
+        try:
+            pid = int(k[5:])
+        except ValueError:
+            pid = -1
+        if k == own or pid <= 0 or not _pid_alive(pid) or _marker_stale(v):
+            db.execute("DELETE FROM meta WHERE k=?", (k,))
+
+
+def index_check(db_path: Path, repo: Path) -> tuple[list[str], list[str]]:
+    """Read-only: compare the index file with the values this process would build it with. Returns (differ, missing), names in the fixed
+    order INDEX_VALUES. No file -> ([], []). Opens with `?mode=ro`, runs no PRAGMA that writes and never creates `Store`, so nothing is
+    reset or written. A file that cannot be read raises sqlite3.Error."""
+    if not db_path.exists():
+        return [], []
+    resolved = db_path.resolve()
+    wal = resolved.with_name(resolved.name + "-wal")
+    # no -wal file: open immutable, so SQLite creates no -wal / -shm even for a WAL database (nothing written on a refusal)
+    shm = resolved.with_name(resolved.name + "-shm")
+    if wal.exists() and not shm.exists():
+        # a -wal without a -shm: reading it in place would create the -shm; read a copy in a temporary directory instead (NEW-3)
+        import shutil
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            shutil.copy(resolved, Path(td) / "index.sqlite")
+            shutil.copy(wal, Path(td) / "index.sqlite-wal")
+            return _index_values(Path(td) / "index.sqlite", "?mode=ro", db_path, repo)
+    return _index_values(resolved, "?mode=ro" if wal.exists() else "?mode=ro&immutable=1", db_path, repo)
+
+
+def _index_values(file: Path, query: str, db_path: Path, repo: Path) -> tuple[list[str], list[str]]:
+    con = sqlite3.connect(file.as_uri() + query, uri=True)
+    try:
+        version = con.execute("PRAGMA user_version").fetchone()[0]
+        has_meta = con.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='meta'").fetchone()[0]
+        stored = dict(con.execute("SELECT k, v FROM meta").fetchall()) if has_meta else {}
+    finally:
+        con.close()
+    want = {"time zone": ("tz", config.tz_name()), "key patterns": ("key_patterns", "\n".join(config.key_patterns())),
+            "console home": ("home", str(db_path.parent.resolve())), "checkout": ("repo_root", str(Path(repo).resolve()))}
+    differ, missing = [], []
+    if version != SCHEMA_VERSION:
+        differ.append("schema version")
+    for name, (k, v) in want.items():
+        if stored.get(k) is None:
+            missing.append(name)
+        elif stored[k] != v:
+            differ.append(name)
+    order = {n: i for i, n in enumerate(INDEX_VALUES)}
+    return sorted(differ, key=order.get), sorted(missing, key=order.get)
+
+
+def index_mismatch(db_path: Path, repo: Path) -> list[str]:
+    """The merged differing and missing index values, as one list in INDEX_VALUES order.
+
+    Kept without a product caller on purpose: it is the merged-list form of the designed
+    guard interface (CON-011), for callers that need a single list. The CLI uses
+    index_check instead, because its refusal message splits differing from missing.
+    """
+    differ, missing = index_check(db_path, repo)
+    order = {n: i for i, n in enumerate(INDEX_VALUES)}
+    return sorted(differ + missing, key=order.get)
 
 
 def _norm_ts(ts: str | None) -> str | None:

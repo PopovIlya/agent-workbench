@@ -17,12 +17,12 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import config, ctq_api, gold, queries
+from . import compare, compare_page, config, ctq_api, gold, queries
 from .autoscore import AutoScorer
 from .pricing import Pricing
 from .store import Store
@@ -190,6 +190,31 @@ def create_app(store: Store | None = None, pricing: Pricing | None = None, port:
                 raise HTTPException(404, "Not found.")
         finally:
             db.close()
+
+    @app.get("/compare")
+    def compare_view(a: str | None = None, b: str | None = None):
+        """Two tickets side by side, as a complete HTML page (CON-010, CON-027, CON-034). Reads the index only; never starts a rescan."""
+        missing = [n for n, v in (("a", a), ("b", b)) if v is None or not v.strip()]
+        if missing:
+            return HTMLResponse(compare_page.missing_page(missing), status_code=422)
+        try:
+            db = st.reader()
+            try:
+                db.execute("BEGIN")             # one read snapshot for the whole answer; never takes Store.lock
+                try:
+                    if (st.progress.get("initial") or db.execute("SELECT 1 FROM meta WHERE k LIKE 'scan:%' LIMIT 1").fetchone()
+                            or (st.progress.get("scans", 0) == 0 and not db.execute("SELECT 1 FROM runs LIMIT 1").fetchone())):
+                        return HTMLResponse(compare_page.building_page(), status_code=503)
+                    unknown = compare.unknown_keys(db, a, b)
+                    if unknown:
+                        return HTMLResponse(compare_page.unknown_page(unknown), status_code=404)
+                    return HTMLResponse(compare_page.render(compare.compare(db, pr, a, b)))
+                finally:
+                    db.rollback()
+            finally:
+                db.close()
+        except Exception:                       # inside the route, so the middleware still adds the security headers
+            return HTMLResponse(compare_page.error_page(), status_code=500)
 
     @app.get("/")
     def index():

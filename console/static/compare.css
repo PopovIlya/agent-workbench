@@ -1,0 +1,15 @@
+/* The /compare page: one table, or one error line. Plain classes only; no inline style anywhere (strict CSP). */
+body { font: 14px/1.4 -apple-system, system-ui, sans-serif; margin: 24px; color: #0b0b0b; background: #f9f9f7; }
+h1 { font-size: 20px; margin: 0 0 16px; font-weight: 650; }
+table.compare { border-collapse: collapse; font-size: 13px; }
+table.compare th, table.compare td { padding: 6px 12px; border-bottom: 1px solid #e1e0d9; text-align: right; white-space: nowrap; }
+table.compare th[scope="col"], table.compare th[scope="row"] { text-align: left; font-weight: 500; color: #52514e; }
+table.compare th[scope="col"].a, table.compare th[scope="col"].b, table.compare th[scope="col"].d { text-align: right; }
+table.compare td.d { color: #52514e; }
+p.error { margin: 0; padding: 10px 14px; background: #fdf3dc; color: #6b4a00; border: 1px solid #e1e0d9; border-radius: 4px; }
+@media (prefers-color-scheme: dark) {
+  body { color: #f0efec; background: #0d0d0d; }
+  table.compare th, table.compare td { border-bottom-color: #2c2c2a; }
+  table.compare th[scope="col"], table.compare th[scope="row"], table.compare td.d { color: #c3c2b7; }
+  p.error { background: #3a2e12; color: #f3d58a; border-color: #2c2c2a; }
+}

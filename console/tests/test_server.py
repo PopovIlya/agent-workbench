@@ -114,3 +114,27 @@ def test_the_pages_read_the_latest_revision_of_a_score(env, client):
     (env.home / "scores.jsonl").write_text("\n".join(json.dumps(x) for x in lines))
     row = client.get("/api/ctq/roles/builder").json()["row"]
     assert row["S"] == pytest.approx(0.5) and row["n_S"] == 1 and row["pass"]["follows"] == [0, 1]
+
+
+# ---- EXP1-R22C: the compare page adds a GET route and no write path -------------------------------------------------------
+
+# rule: CON-032
+def test_ep_032_04_compare_adds_no_post_put_patch_delete_route(client):
+    routes = flat_routes(client.app)
+    assert any(r.path == "/compare" and "GET" in r.methods for r in routes), "no GET /compare route"
+    posts = {r.path for r in routes if "POST" in r.methods}
+    literal = {"/api/show/{run_id:path}", "/api/flags/check", "/api/rescan", "/api/verdict", "/api/defect", "/api/flags/decide"}
+    assert posts - literal == set()
+    assert not any(m in r.methods for r in routes for m in ("PUT", "PATCH", "DELETE"))
+    assert all(r.methods <= {"GET", "HEAD"} for r in routes if "compare" in r.path)
+
+
+# rule: CON-033
+def test_ep_033_08_main_binds_loopback_only(env, monkeypatch):
+    import signal
+    seen = {}
+    monkeypatch.setattr(signal, "signal", lambda *a: None)                         # keep the test process's own handlers
+    monkeypatch.setattr(server, "create_app", lambda **kw: object())               # no scorer thread, no scan loop
+    monkeypatch.setattr(server.uvicorn, "run", lambda app, **kw: seen.update(kw))
+    server.main()
+    assert seen["host"] == "127.0.0.1" and seen["port"] == config.PORT

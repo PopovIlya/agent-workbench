@@ -38,3 +38,11 @@ def test_nothing_in_static_loads_another_origin():
         assert not re.search(r"https?://", text), (p.name, re.search(r".{30}https?://.{30}", text))
         assert not re.search(r"(?:src|href)\s*=\s*[\"']//", text), p.name
         assert "@import" not in text and not re.search(r"url\(\s*[\"']?(?!/static/|#|data:)", text), p.name
+
+
+# rule: CON-033
+def test_compare_stylesheet_is_a_static_file_and_follows_the_strict_rules():
+    css = STATIC / "compare.css"
+    assert css in FILES, "console/static/compare.css is missing"
+    text = css.read_text()
+    assert "@import" not in text and not re.search(r"https?://", text) and not re.search(r"url\(\s*[\"']?(?!/static/|#|data:)", text)

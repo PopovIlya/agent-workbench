@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 
 from agent_console.store import Store
 from conftest import (PROJECT, add_sub, api_error, assistant, role_file, tool_use, usage, user_prompt, write_jsonl)
@@ -234,3 +235,227 @@ def test_checked_flag_survives_rebuild(env):
     db = s.reader()
     assert [f["status"] for f in queries.flag_rows(db, only_open=False)] == ["checked"] and queries.flag_rows(db) == []
     db.close()
+
+
+# ---- EXP1-R22C: the index meta rows (home, repo_root) and the ticket columns must not change -------------------------
+
+def _golden_logs(root):
+    """Extra sessions for the ticket-column golden (own key, effective key, spawn keys, a Write path key); the golden was made from the base commit 0891a04."""
+    from conftest import PROJECT, add_sub, assistant, tool_result, tool_use, usage, user_prompt, write_jsonl
+    recs = [user_prompt("[ABC-1] go", t=0, session="G1")]
+    for i in range(3):
+        recs += [assistant(f"g1-m{i}", t=1 + i, session="G1", u=usage(0, 0), blocks=[tool_use(f"g1-t{i}", "Agent", subagent_type="builder", description="[ABC-2] x", prompt="p")]),
+                 tool_result(f"g1-t{i}", t=100 + i, session="G1")]
+        add_sub(root, "G1", f"g1-ag{i}", "builder", [assistant(f"g1-s{i}", agent=f"g1-ag{i}", session="G1", t=10 + i)], f"g1-t{i}")
+    write_jsonl(root / PROJECT / "G1.jsonl", recs)
+    recs = [user_prompt("plain start", t=0, session="G2"),
+            assistant("g2-w", t=5, session="G2", blocks=[tool_use("g2-write", "Write", file_path="/work/app/docs/ABC-7-notes.md", content="x")]),
+            assistant("g2-m", t=20, session="G2", u=usage(0, 0), blocks=[tool_use("g2-t", "Agent", subagent_type="tester", description="check", prompt="please look at ABC-8")]),
+            tool_result("g2-t", t=100, session="G2")]
+    write_jsonl(root / PROJECT / "G2.jsonl", recs)
+    add_sub(root, "G2", "g2-ag", "tester", [assistant("g2-s", agent="g2-ag", session="G2", t=21)], "g2-t")
+
+
+# rule: CON-032
+def test_ep_032_02_ticket_columns_equal_the_golden_of_the_base_commit(env):
+    import shutil
+    from pathlib import Path
+    here = Path(__file__).resolve().parent
+    shutil.copytree(here / "fixtures" / "logs", env.root)
+    _golden_logs(env.root)
+    s = Store()
+    s.ingest()
+    got = [list(r) for r in s.db.execute("SELECT run_id, ticket, ticket_src, ticket_eff FROM runs ORDER BY run_id")]
+    golden = json.loads((here / "fixtures" / "golden_ticket_columns.json").read_text())
+    assert len(golden) >= 1
+    assert got == golden
+
+
+# rule: CON-011
+def test_ep_011_18_a_new_index_records_the_console_home_and_the_checkout(env):
+    from pathlib import Path
+    env.home.mkdir(parents=True, exist_ok=True)
+    s = Store(env.home / "index.sqlite", env.repo)
+    meta = dict(s.db.execute("SELECT k, v FROM meta").fetchall())
+    assert meta["home"] == str(env.home.resolve()) and meta["repo_root"] == str(Path(env.repo).resolve())
+    assert meta["tz"] == "Europe/Madrid"
+
+
+# rule: CON-011
+def test_ep_011_19_a_start_overwrites_home_and_checkout_and_keeps_the_derived_rows(env):
+    from pathlib import Path
+    from agent_console.store import SCHEMA_VERSION
+    build_main_with_subs(env, [("a1", "builder", "ABC-1 build", sub_recs("a1"))])
+    s = Store()
+    s.ingest()
+    n = q(s, "SELECT count(*) AS n FROM runs")[0]["n"]
+    assert n >= 1
+    kept = {r["k"]: r["v"] for r in q(s, "SELECT k, v FROM meta WHERE k IN ('tz','key_patterns')")}
+    s.db.execute("UPDATE meta SET v='/other/home' WHERE k='home'")
+    s.db.execute("UPDATE meta SET v='/other/repo' WHERE k='repo_root'")
+    s.db.commit()
+    s.db.close()
+    s2 = Store(env.home / "index.sqlite", env.repo)
+    assert q(s2, "SELECT count(*) AS n FROM runs")[0]["n"] == n
+    assert s2.db.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
+    meta = {r["k"]: r["v"] for r in q(s2, "SELECT k, v FROM meta")}
+    assert meta["home"] == str(env.home.resolve()) and meta["repo_root"] == str(Path(env.repo).resolve())
+    assert {k: meta[k] for k in kept} == kept
+
+
+# rule: CON-032
+def test_ep_032_03_old_index_without_the_new_rows_keeps_its_derived_rows(env):
+    from pathlib import Path
+    build_main_with_subs(env, [("a1", "builder", "ABC-1 build", sub_recs("a1"))])
+    s = Store()
+    s.ingest()
+    before = (q(s, "SELECT count(*) AS n FROM runs")[0]["n"], s.db.execute("PRAGMA user_version").fetchone()[0],
+              {r["k"]: r["v"] for r in q(s, "SELECT k, v FROM meta WHERE k IN ('tz','key_patterns')")})
+    assert before[0] >= 1
+    s.db.execute("DELETE FROM meta WHERE k IN ('home','repo_root')")
+    s.db.commit()
+    s.db.close()
+    s2 = Store(env.home / "index.sqlite", env.repo)
+    meta = {r["k"]: r["v"] for r in q(s2, "SELECT k, v FROM meta")}
+    assert meta["home"] == str(env.home.resolve()) and meta["repo_root"] == str(Path(env.repo).resolve())
+    assert (q(s2, "SELECT count(*) AS n FROM runs")[0]["n"], s2.db.execute("PRAGMA user_version").fetchone()[0],
+            {k: meta[k] for k in ("tz", "key_patterns")}) == before
+
+
+# rule: CON-011
+def test_ep_011_20_index_mismatch_lists_differ_and_missing_in_the_fixed_order(env):
+    """CON-011: differ + missing are merged in INDEX_VALUES order; a matching index gives [], no file gives []."""
+    from pathlib import Path
+    from agent_console.store import INDEX_VALUES, index_mismatch
+    env.home.mkdir(parents=True, exist_ok=True)
+    db_path = env.home / "index.sqlite"
+    assert index_mismatch(db_path, env.repo) == []
+    Store(db_path, env.repo).db.close()
+    assert index_mismatch(db_path, env.repo) == []
+    s = Store(db_path, env.repo)
+    s.db.execute("UPDATE meta SET v='other' WHERE k IN ('key_patterns','repo_root')")
+    s.db.execute("DELETE FROM meta WHERE k IN ('tz','home')")
+    s.db.commit()
+    s.db.close()
+    want = [n for n in INDEX_VALUES if n in ("time zone", "key patterns", "console home", "checkout")]
+    assert want == ["time zone", "key patterns", "console home", "checkout"]
+    assert index_mismatch(db_path, Path(env.repo)) == want
+
+
+# rule: CON-010, CON-011
+def test_ingest_leaves_no_scan_marker_row(env):
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    s.ingest()
+    assert q(s, "SELECT k FROM meta WHERE k LIKE 'scan:%'") == []
+
+
+# rule: CON-010, CON-011
+def test_index_check_ignores_scan_marker_rows(env):
+    from agent_console import config
+    s = Store()
+    s.ingest()
+    from datetime import datetime, timezone
+    s.db.execute("INSERT OR REPLACE INTO meta VALUES('scan:4000000', ?)", (datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),))
+    s.db.commit()
+    s.db.close()
+    from agent_console.store import index_check
+    assert index_check(config.home() / "index.sqlite", config.repo_root()) == ([], [])
+
+
+# ---------- EXP1-R22C security re-check: stale scan markers (NEW-2) ----------
+
+def _plant_marker(s, pid, started):
+    s.db.execute("INSERT OR REPLACE INTO meta VALUES(?, ?)", (f"scan:{pid}", started))
+    s.db.commit()
+
+
+def _markers(s):
+    return [r["k"] for r in q(s, "SELECT k FROM meta WHERE k LIKE 'scan:%' ORDER BY k")]
+
+
+# rule: CON-010
+def test_new_2_an_overflowing_pid_marker_does_not_fail_ingest_and_is_cleared(env):
+    from datetime import datetime, timezone
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    _plant_marker(s, "99999999999999999999", datetime.now(timezone.utc).isoformat())
+    assert _markers(s) == ["scan:99999999999999999999"]
+    s.ingest()                                  # must not raise OverflowError
+    assert s.progress["state"] == "idle"
+    assert _markers(s) == []
+
+
+# rule: CON-010
+def test_new_2_a_live_pid_marker_older_than_the_age_bound_is_cleared(env):
+    import os
+    from datetime import datetime, timedelta, timezone
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    live = os.getppid()
+    os.kill(live, 0)                            # alive, and not this process
+    assert live != os.getpid()
+    _plant_marker(s, live, (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat())
+    s.ingest()
+    assert _markers(s) == []
+
+
+# rule: CON-010
+def test_new_2_a_fresh_live_pid_marker_survives(env):
+    import os
+    from datetime import datetime, timezone
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    live = os.getppid()
+    os.kill(live, 0)
+    assert live != os.getpid()
+    _plant_marker(s, live, datetime.now(timezone.utc).isoformat())
+    s.ingest()
+    assert _markers(s) == [f"scan:{live}"]
+
+
+# rule: CON-010
+@pytest.mark.parametrize("name", ["abc", "0"])
+def test_review7_a_marker_with_an_unusable_pid_is_cleared(env, name):
+    from datetime import datetime, timezone
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    s.db.execute("INSERT OR REPLACE INTO meta VALUES(?, ?)", (f"scan:{name}", datetime.now(timezone.utc).isoformat()))
+    s.db.commit()
+    assert _markers(s) == [f"scan:{name}"]
+    s.ingest()
+    assert s.progress["state"] == "idle"
+    assert _markers(s) == []
+
+
+# rule: CON-010
+def test_review7_a_live_pid_with_a_naive_time_two_hours_old_is_cleared(env):
+    import os
+    from datetime import datetime, timedelta, timezone
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    live = os.getppid()
+    os.kill(live, 0)
+    assert live != os.getpid()
+    old = (datetime.now(timezone.utc) - timedelta(hours=2)).replace(tzinfo=None).isoformat()
+    assert "+" not in old and not old.endswith("Z")
+    _plant_marker(s, live, old)
+    s.ingest()
+    assert s.progress["state"] == "idle"
+    assert _markers(s) == []
+
+
+# rule: CON-010
+@pytest.mark.parametrize("started", ["now-naive", "not-a-time"])
+def test_review7_a_live_pid_with_a_fresh_naive_or_unreadable_time_is_kept(env, started):
+    import os
+    from datetime import datetime, timezone
+    build_main_with_subs(env, [("a1", "builder", "do PROJ-60036 thing", sub_recs("a1"))])
+    s = Store()
+    live = os.getppid()
+    os.kill(live, 0)
+    assert live != os.getpid()
+    value = datetime.now(timezone.utc).replace(tzinfo=None).isoformat() if started == "now-naive" else started
+    _plant_marker(s, live, value)
+    s.ingest()                                  # a naive time must not raise
+    assert _markers(s) == [f"scan:{live}"]
