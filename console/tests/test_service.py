@@ -108,6 +108,25 @@ def test_the_session_start_hook_execs_start_sh_and_logs_when_it_is_missing(box):
     assert (r.returncode, r.stdout.strip()) == (0, "started with: arg1")
 
 
+def test_the_hook_adds_the_marking_instruction_only_when_the_console_answers(box):
+    fake = box.tmp / "a checkout"
+    (fake / "hooks").mkdir(parents=True)
+    (fake / "console").mkdir()
+    shutil.copy(HOOK, fake / "hooks" / "session-start.sh")
+    start = fake / "console" / "start.sh"
+    for line, marked in (("Agent console: http://127.0.0.1:1", True),
+                         ("Agent console: NOT answering at http://127.0.0.1:1 (LaunchAgent installed; see x)", False),
+                         ("", False)):
+        start.write_text(f'#!/bin/bash\n[ -n "{line}" ] && echo "{line}"\nexit 0\n')
+        start.chmod(0o755)
+        r = box.sh(fake / "hooks" / "session-start.sh")
+        assert r.returncode == 0 and ("Console tracking:" in r.stdout) is marked and (not line or r.stdout.startswith(line))
+    start.write_text('#!/bin/bash\necho "Agent console: http://127.0.0.1:1"\n')
+    assert "Console tracking:" in box.sh(fake / "hooks" / "session-start.sh").stdout
+    r = box.sh(fake / "hooks" / "session-start.sh", AGENT_CONSOLE_MARKING="0")
+    assert r.stdout == "Agent console: http://127.0.0.1:1\n"
+
+
 def test_with_the_service_installed_the_hook_only_reports_and_starts_nothing(box):
     box.agents.mkdir(parents=True)
     box.plist.write_text("<plist/>")

@@ -8,6 +8,7 @@
 #  - Idempotent: pid file + health check; a second call prints the same line and starts nothing.
 #  - Never kills anything. A foreign process on the port is logged and left alone.
 #  - Prints exactly one line on success: "Agent console: http://127.0.0.1:<port>" (no token, ever).
+#    (The SessionStart hook, hooks/session-start.sh, adds one marking line after it; start.sh itself still prints one line.)
 #
 # Env: AGENT_CONSOLE_HOME, AGENT_CONSOLE_PORT, AGENT_CONSOLE_GUARD_ROOT (colon-separated), AGENT_CONSOLE_LABEL,
 # AGENT_CONSOLE_FORCE=1 (skip the cwd guard; used by `make start`), AGENT_CONSOLE_PYTHON, AGENT_CONSOLE_LAUNCHAGENTS.

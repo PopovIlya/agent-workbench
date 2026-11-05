@@ -30,6 +30,19 @@ cd ~/code/agent-workbench
 
 Then make a repo ready ([docs/SETUP-A-PROJECT.md](docs/SETUP-A-PROJECT.md)) and run a ticket ([docs/HOW-TO-RUN.md](docs/HOW-TO-RUN.md)).
 
+## Tell Claude how to mark a session
+
+The console groups cost and time by ticket key. A session is tracked reliably only when Claude knows its key. Two things carry the key:
+
+- the first message starts with the key in brackets, for example `[PROJ-123] Add the empty-cart state`;
+- every sub-agent description starts with the same `[PROJ-123] `, and the work notes live in `docs/agents/work/PROJ-123/`.
+
+Claude needs to be told to do this. The SessionStart hook installed by `./install.sh` does it for you: in each new session it prints the console URL and one more line, an instruction to Claude. If the first message does not start with `[KEY]`, Claude asks once which key to use (or `none` to skip), then marks the sub-agents and work notes with it. If the first message already starts with `[KEY]`, it does not ask.
+
+- Without the hook (another machine, or `./install.sh --no-hooks`): put the same instruction into the project's `CLAUDE.md`. The text is at the end of `hooks/session-start.sh`.
+- To switch the instruction off, set `AGENT_CONSOLE_MARKING=0` in the environment of the session.
+- Why it matters: a key found only inside a prompt's text can be taken for a ticket. In EXP-1 the rule ids `CON-011` and similar were filed as tickets and the console showed USD 53 for a ticket that cost USD 117 (see [docs/experiments/exp1/README.md](docs/experiments/exp1/README.md)). A leading `[KEY]` is the strongest signal the console reads.
+
 ## Docs
 - [docs/INSTALL.md](docs/INSTALL.md): prerequisites, install and uninstall, models, updates, the console service.
 - [docs/SETUP-A-PROJECT.md](docs/SETUP-A-PROJECT.md): the project profile, field by field.

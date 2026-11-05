@@ -69,7 +69,11 @@ def test_the_hook_execs_this_checkouts_start_sh_and_the_guard_still_applies(sh):
     out = sp.run(["/bin/bash", str(hook)], env={**sh.env, "CLAUDE_PROJECT_DIR": "/tmp"}, capture_output=True, text=True, timeout=10)
     assert (out.returncode, out.stdout) == (0, "")
     out = sp.run(["/bin/bash", str(hook)], env=sh.env, capture_output=True, text=True, timeout=20)
-    assert out.stdout == f"Agent console: http://127.0.0.1:{sh.port}\n"
+    url, *rest = out.stdout.splitlines()
+    assert url == f"Agent console: http://127.0.0.1:{sh.port}"
+    assert len(rest) == 1 and rest[0].startswith("Console tracking:") and "[KEY]" in rest[0] and "'none'" in rest[0]    # the marking instruction
+    off = sp.run(["/bin/bash", str(hook)], env={**sh.env, "AGENT_CONSOLE_MARKING": "0"}, capture_output=True, text=True, timeout=20)
+    assert off.stdout == f"Agent console: http://127.0.0.1:{sh.port}\n"                                           # switched off: the old single line
 
 
 def test_inside_the_tree_it_starts_once_and_prints_one_line(sh):
