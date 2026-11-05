@@ -1,1 +1,3 @@
 target-version = "py313"
+# The experiment folder holds archived one-off scripts and recorded data, not product code.
+extend-exclude = ["docs/experiments"]
