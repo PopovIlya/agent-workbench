@@ -1,0 +1,166 @@
+{
+  "a": {
+    "active_role_s": 2784.569000005722,
+    "cost_usd": 7.6744610000000035,
+    "key": "EXP1-KITC",
+    "main_session": {
+      "cost_usd": 3.047094199999999,
+      "sessions": 1,
+      "tokens": {
+        "cache_read": 8450376,
+        "cache_write": 327818,
+        "input": 252,
+        "output": 53697,
+        "total": 8832143
+      },
+      "wait_over_2h_s": 7785.40700006485,
+      "wait_s": 7785.40700006485
+    },
+    "main_share_of_sub_cost": 0.6584942002004247,
+    "role_runs": {
+      "failed": 21,
+      "repeat": 15,
+      "total": 21
+    },
+    "sub_agents_cost_usd": 4.627366800000001,
+    "tokens": {
+      "cache_read": 13503150,
+      "cache_write": 1003046,
+      "input": 598,
+      "output": 246502,
+      "total": 14753296
+    },
+    "tokens_by_model": {
+      "claude-sonnet-5-5": {
+        "cache_read": 13503150,
+        "cache_write": 1003046,
+        "cost_usd": 7.6744610000000035,
+        "input": 598,
+        "output": 246502,
+        "total": 14753296,
+        "unpriced_messages": 0
+      }
+    },
+    "unpriced_messages": 0,
+    "wall_s": 11078.677999973297
+  },
+  "b": {
+    "active_role_s": 383.1559998989105,
+    "cost_usd": 53.30137799999997,
+    "key": "EXP1-R22C",
+    "main_session": {
+      "cost_usd": 51.96613479999997,
+      "sessions": 1,
+      "tokens": {
+        "cache_read": 123329414,
+        "cache_write": 4277224,
+        "input": 1088,
+        "output": 295489,
+        "total": 127903215
+      },
+      "wait_over_2h_s": 0,
+      "wait_s": 0
+    },
+    "main_share_of_sub_cost": 38.91885373391154,
+    "role_runs": {
+      "failed": 4,
+      "repeat": 3,
+      "total": 4
+    },
+    "sub_agents_cost_usd": 1.3352431999999994,
+    "tokens": {
+      "cache_read": 124197080,
+      "cache_write": 4382326,
+      "input": 1168,
+      "output": 327283,
+      "total": 128907857
+    },
+    "tokens_by_model": {
+      "claude-opus-5-5": {
+        "cache_read": 124197080,
+        "cache_write": 4382326,
+        "cost_usd": 53.30137799999997,
+        "input": 1168,
+        "output": 327283,
+        "total": 128907857,
+        "unpriced_messages": 0
+      }
+    },
+    "unpriced_messages": 0,
+    "wall_s": 18840.886000156403
+  },
+  "difference": {
+    "active_role_s": -2401.4130001068115,
+    "cost_usd": 45.62691699999997,
+    "main_cost_usd": 48.919040599999974,
+    "main_share_of_sub_cost": 38.26035953371112,
+    "main_tokens_total": 119071072,
+    "main_wait_over_2h_s": -7785.40700006485,
+    "main_wait_s": -7785.40700006485,
+    "role_runs_failed": -17,
+    "role_runs_repeat": -12,
+    "role_runs_total": -17,
+    "tokens_by_model": {
+      "claude-opus-5-5": {
+        "cache_read": null,
+        "cache_write": null,
+        "cost_usd": null,
+        "input": null,
+        "output": null,
+        "unpriced_messages": null
+      },
+      "claude-sonnet-5-5": {
+        "cache_read": null,
+        "cache_write": null,
+        "cost_usd": null,
+        "input": null,
+        "output": null,
+        "unpriced_messages": null
+      }
+    },
+    "tokens_cache_read": 110693930,
+    "tokens_cache_write": 3379280,
+    "tokens_input": 570,
+    "tokens_output": 80781,
+    "tokens_total": 114154561,
+    "unpriced_messages": 0,
+    "wall_s": 7762.2080001831055
+  },
+  "ratio": {
+    "active_role_s": 0.1375997505890941,
+    "cost_usd": 6.945292705246655,
+    "main_cost_usd": 17.05432500248925,
+    "main_share_of_sub_cost": 59.10280412806351,
+    "main_tokens_total": 14.481560703897118,
+    "main_wait_over_2h_s": 0.0,
+    "main_wait_s": 0.0,
+    "role_runs_failed": 0.19047619047619047,
+    "role_runs_repeat": 0.2,
+    "role_runs_total": 0.19047619047619047,
+    "tokens_by_model": {
+      "claude-opus-5-5": {
+        "cache_read": null,
+        "cache_write": null,
+        "cost_usd": null,
+        "input": null,
+        "output": null,
+        "unpriced_messages": null
+      },
+      "claude-sonnet-5-5": {
+        "cache_read": null,
+        "cache_write": null,
+        "cost_usd": null,
+        "input": null,
+        "output": null,
+        "unpriced_messages": null
+      }
+    },
+    "tokens_cache_read": 9.197637588266442,
+    "tokens_cache_write": 4.369017971259543,
+    "tokens_input": 1.9531772575250836,
+    "tokens_output": 1.327709308646583,
+    "tokens_total": 8.737563253662097,
+    "unpriced_messages": null,
+    "wall_s": 1.7006438855070807
+  }
+}

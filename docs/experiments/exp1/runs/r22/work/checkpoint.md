@@ -1,0 +1,78 @@
+0891a04 (uncommitted, 18 entries) · DONE: READY FOR THE TRAIN (lead QA 2026-11-05) · next: the person commits/merges (no push, no MR by agents) · open bugs: 0 (accepted known limits listed in change.md)
+- Ticket EXP1-R22C; change file docs/agents/work/EXP1-R22C/change.md (brief on top + SA analysis + QA + Interfaces for tests).
+- Answers: brief + ~/exp1/answers.md 1-43. Item 37: small edge -> Agent decision; item 42: no log-scan workarounds.
+- No worktree, branch exp1/r22, no push/MR, no commits so far. Gates not declared: claims, tracker, ci_limit, suites, etc.
+- DoR READY (lead QA 2026-11-05). Rules CON-001..006, CON-010..035; current: CON-011 v5, 014 v7, 015 v8, 018 v2, 022 v11, 027 v6, 034 v4.
+- Test design APPROVED (lead-qa-design2.md); cases-ep/dt/bva/st-cl.md signed. Return rounds used: DoR parts and design 2/2; extra loops 1-3 (answers 39, 41, 43).
+- Tests (red, right reasons): test_compare.py 145, test_compare_cli.py 41, test_compare_format.py 20, test_compare_page.py 45 (251 collected); +2 test_server, +1 test_static, +4 test_store_and_flags; fixtures/golden_ticket_columns.json. Summaries ae1/ae2/ae3-red.md.
+- Safety: CLI subprocess tests use a free AGENT_CONSOLE_PORT + 15 s kill. Person's console pid 62646 on 8790 healthy.
+- Not ours: consoles pid 42470 (52209), 46021 (52440) from /private/tmp/awb-clean, since 2026-11-04; reported, untouched.
+- Security engineer needed at step 7 (new endpoint; typed key echoed; raw logs read). Hostile verifier: High risk ticket.
+- BA on build decisions: D1 against builder (code + test helper fix), D4 CON-022 v12 Q-041, D8 already decided Q-043. Waiting SA.
+- AE fix loop: helper asst() writes no usage when u=None; 4 confirmation tests red for the right reason (D1, G1 x2, G2); 145 existing pass. Waiting BA before builder.
+- BA: CON-015 v9 (Q-044), CON-011 v6 (Q-045), running run = failed already decided by answer 3 (Q-046).
+- rr11 PASS (rr11-build.md), 3 non-blocking notes. Waiting builder.
+- AE: helper filler_model + 4 tests adjusted (no expected values changed); 149 collected; d1/g2 confirm pass on current code.
+- Builder revert round: parser.py == 0891a04; store.py only planned hunks; G2 in compare.py (out_chars). Console 707, tools+kit 49, ruff clean. Diff vs 0891a04: only planned files.
+- review1 finding 5 fixed by builder (INDEX_VALUES in compare_cli; 41 cli tests pass; ruff clean). Waiting AE (findings 1-4) and BA (handback).
+- AE round 3: review1 findings 1-5 tests added, all kill their mutation; 182 passed in test_compare + test_store_and_flags.
+- rr12 CON-015 v10 PASS (rr12-con015.md). Waiting B1 confirmation test.
+- B1 tests: confirm red (failed 1 vs 0), control green. Gap: handback's own tool_result is_error -> not in CON-015 v10 (rr12 default: failed). Builder fixes B1 per default; BA records it in parallel.
+- BA: CON-015 v11 (Q-048): handback's own tool_result is_error -> failed (denial: answer 3; other errors: Agent decision). Test for it still to add. Waiting builder B1.
+- AE: test_b1_handback_error_result_is_failed added; kills the is_error mutation; passes. Waiting SA on B1-D1/D2.
+- B2 tests: 3 red (failed 1 vs 0), 1 control green; ruff clean. Builder fixing B2.
+- BA: CON-015 v12 (Q-049) Agent decision recorded. Waiting builder B2.
+- Builder B2 fixed: console 723, tools+kit 49, ruff clean; no new decisions.
+- rr13 CON-015 v11/v12 PASS (rr13-con015.md). Note: rules' tests: fields to fill before Ready for QA. Waiting review 2.
+- AE review 2: findings 1,2,4,5 tests + 14 docstrings; mutations killed; 216 passed. INCIDENT: AE ran git checkout in a /tmp cp -R copy (its .git file points into the shared repo). Checked: branch exp1/r22, HEAD 0891a04, reflog unchanged since 12:24, 18 status entries, diff stat +241/-20 unchanged, 241 tests pass. No damage found. Future /tmp copies: remove .git first.
+- AE review 2 round: Q-050 case 1 red (failed 0 vs 1), 8 others pass (case 2, 3b reset, controls, Q-051 x5).
+- rr14: CON-015 v13 wording REJECT (handback + text + Bash), CON-022 v13 PASS. BA fixes wording (v14).
+- BA: CON-015 v14 wording (final reply = last turn holds a SubagentHandback call, or no handback and text and no tool_use). Re-check running; builder running.
+- Builder B3 fixed (738 pass, 1 fail: test_con_015_records_of_one_message_id_are_one_turn contradicts Q-050); tools+kit 49; ruff clean. AE updates that test (handback + Bash same id) keeping it a merge-mutation killer.
+- rr15 CON-015 v14 PASS (rr15-con015.md); stale note wording at ~line 183 to fix with the tests:-field pass. Waiting AE one-turn test.
+- AE: one-turn test reworked (handback + Bash same id -> 0; ids differ -> 1); mutation killed; test_compare.py 178 pass.
+- BA: Q-052 CON-022 v14 (compact summary ends no gap) -> BUG B4. Waiting SA on review3 #1.
+- BA: Q-053 recorded (CON-014 v7 and CON-003 v1 notes + history, no version change). Waiting AE B4/B5 tests.
+- AE: B5 tests (4 cases) + guard red (double count), B4 (a)(b)(c) red; 7 comments reworded; 225 others pass.
+- AE: dangling refs removed from test docstrings (3); cli/format/page tests 108 pass; ruff clean. Waiting builder B4/B5.
+- SA: B5-D1, B5-D2 consistent; code matches design; no change. Waiting review 4.
+- Extra loop 4 (answer 46): review4 fixes.
+- Extra loop 4: builder index_mismatch docstring done (25 pass, ruff clean). Waiting BA, AE.
+- Extra loop 4: BA Q-054 (B5-D1) on CON-014 v7 notes; CON-022 v14 wording tightened (no bump). Waiting AE.
+- Extra loop 4: AE 4 fallback-order tests (each kills its mutation), 4 docstrings; test_compare.py 190 pass.
+- Review 5 items closed by AE (earliest-copy test kills mutation; comments). 216 pass.
+- Step 6 env-checker PASS (Python 3.13.14; pins match; ruff clean; free port; /tmp writable). Other processes: 62646 (8790), 46021, 42470, and an unidentified Python pid 23970 on 8765 — not touched.
+- Step 6 PASS: 344 passed, 0 failed (step6-result.md, /tmp/exp1-r22c-step6.log).
+- QA analyst: all 32 rules' tests: fields filled; no CON-010..035 rule without a marked test; observed rules covered indirectly.
+- Step 7 verifier PASS (verify.md). Stray console/out.html (verifier's synthetic page) removed by coordinator.
+- Security FAIL verbatim in security.md. Lane breach by security engineer: one GET /health to 8790 (read-only).
+- Hostile FAIL (hostile.md): HV-1 page during a later scan reports known key unknown / half-scan figures (CON-010 v2 covers first index only) -> ASKED the person; HV-2 CLI echoes typed key raw on stderr.
+- HV-1 ruled: answer 47 option A (503 during any scan; message text to reconcile with the first-index text).
+- AE: 9 confirmation tests (7 red: SEC-1 uuid CLI+page, SEC-2, SEC-3, SEC-4, HV-2 x2; 2 pass as guards: SEC-1 timestamp/tool_id hit pre-existing ingest abort INFO-1). Waiting BA HV-1 text.
+- BA: CON-010 v3 (Q-055): 503 during any scan (first, later, CLI refresh); one text 'The console is updating its index. Reload this page later.'; CON-027 note. Open: how the page knows another process is scanning.
+- SA: scan marker design (meta 'scan:<pid>' row written first in ingest, removed in the final rebuild commit; dead-pid cleanup; page checks it inside its BEGIN snapshot). No schema change. change.md 'Scan in progress'.
+- BA: Q-056 recorded (CON-010 v3 note; not blocking: 503 lasts ~one 30 s loop). Waiting AE HV-1 tests.
+- AE: HV-1 tests (5 page + 2 store) + 503 text; 10 red for the right reasons.
+- AE: test_hv_p20 isolation fixed (own MonkeyPatch context + log-root guard); test_dt_010_06 has the same undo() -> being fixed. 55 page tests pass.
+- AE: test_dt_010_06 isolation fixed; no monkeypatch.undo() left. 55 page tests pass.
+- BA: Q-057 (BD1-BD5 Agent decisions); CON-011 v7, CON-033 v2, CON-035 v2. Gap: no test forces the 500 page.
+- AE: test_con_033_unexpected_error_gives_the_html_500_page; kills its mutation.
+- Extra loop 5 (answer 48): in scope only; NEW-1 accepted as known limit (backlog); no change to parser.py or the existing ingest.
+- BA: Q-058 recorded (NEW-1 known limit; NEW-2 1 h age bound / unparsable pid = dead; NEW-3 no file on refusal); CON-010 tests field filled. Waiting AE tests and hostile re-check.
+- Hostile re-check PASS (HV-1, HV-2, sample of earlier attacks; 0 open bugs). O-4: every scan, even an empty one, gives ~0.5-1.5 s of 503 (per CON-010 v3). O-5..O-7 noted.
+- AE loop 5: 20 tests; 4 red (argparse echo, NEW-3, NEW-2 x2), 16 pass and kill their mutations. Note: first deletion of its /tmp copy 'was blocked', second pass removed it. Quirk: None ids pair in asks/rejected (follows BD4: absent never pairs).
+- AE: test_dt_010_08 uses now; console suite 790 passed.
+- BA: Q-059 (L5-D1..4) recorded; tests fields updated; no version bumps.
+- Security re-check round 2 PASS (verbatim in security.md); NEW-5 Low (temp-copy follows symlink / no size bound), NEW-6 info. Waiting hostile re-run + review 7.
+- Hostile re-run 2 PASS on final version (0 open bugs); its console stopped. Waiting review 7.
+- Extra loop 6 (answer 49): tests only; no product code change; do not touch consoles 52209/52440.
+- AE loop 6: review 7 items 1-4 tests, each kills its mutation; suite 798 passed; product files unchanged (last write 18:31).
+- Review 8 PASS (review8.md). Step 7 complete: verifier PASS, hostile PASS, security PASS, reviewer PASS.
+- Review 8 LOW docstring fixed (2 new_3 tests pass, ruff clean). Waiting lead-qa step 8.
+- Lead QA step 8: NOT READY only because verify.md (17:52) and step 6 (17:48) predate final product writes (18:06-18:31). Suites 798 + 49 green; hostile, security, reviewer PASS on final; Ready-for-QA holds; known limits listed.
+- env-checker re-run returned only the word 'placeholder' (no verdict, no evidence). Step stopped; reported word for word; waiting for the person.
+- Answer 50: env-checker retried once with the same brief; first run gave no verdict ('placeholder') - record in report.
+- env-checker retry (answer 50) also returned only 'placeholder'. Stopped; asking the person.
+- Answer 51: env check skipped; hand-off rests on the 17:46 env PASS; both empty env-checker runs to be recorded in the report.
+- Step 6 final: 390 passed, 0 failed (step6-result-final.md).
+- Final verifier PASS (verify-final.md); minor: float-subtraction tie in the difference (backlog).

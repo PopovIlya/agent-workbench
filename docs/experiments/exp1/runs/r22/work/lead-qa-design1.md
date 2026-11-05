@@ -1,0 +1,5 @@
+# Lead QA test design approval 1, EXP1-R22C — NOT APPROVED (written by coordinator from the lead QA's reply)
+Sample 74 of ~232 case blocks (9 high-risk rules + DoR notes); traceability by script: 227 live items each have a case.
+BLOCKING: EP-018-01, EP-018-02, EP-018-04, EP-019-01 — conftest usage() defaults out=20, so costs come out 1.00004 / 1.0004 / 2.00004, cost_share ~1.99998; oracles == 1.0 / 2.0 fail on correct code. Fix: usage(N, 0) in the fixtures, pytest.approx on every float cost/share. Re-check of these four cases only; then lead QA signs all four files.
+Non-blocking notes for the automation engineer: 1 TC-ST-11 set rec["uuid"] "uA"/"uB" and assert they differ; 2 TC-ST-08, TC-ST-11 second variant as own test function; 3 copied resume records keep sessionId S1 in S2.jsonl (fine, parser.py:93); do not assert S2 tokens; 4 EP-033-06/07, EP-034-13/14, EP-035-05 use the EP-033-04 fixture; 5 EP header note on DIR_KEY_RE is wrong, no test impact; 6 EP-011-17 remote is a tmp path; 7 TC-CL-03 lead QA runs full suites once.
+Return rounds 2 of 2 used.
