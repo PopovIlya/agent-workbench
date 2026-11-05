@@ -87,7 +87,20 @@ Source: `data/real-logs-compare-kit.json`, `data/real-logs-compare-r22.json` (ea
 - The 22-role arm's code was committed by the ops session after the route finished; the kit committed its own.
 - Prices are estimates; the check's synthetic data and the 15 mutations were written by the same person who ran the experiment.
 
-## 6. Layout
+## 6. After the run: what went into `main`
+
+The kit implementation was taken into `main` after the check, with one fix and a review:
+
+- **Fix (commit `404ab91`, branch `feat/compare`, on top of the run's last commit `76b5322`):** a sub-agent run that ends with a `SubagentHandback` call counts as completed. The run's own rule, test and map text said the opposite; the real-log accuracy step (section 4) showed all 21 kit runs reported as failed. After the fix the kit CLI reports 0 failed runs on the real logs, like the 22-role CLI; the console suite stays green (554 passed) and ruff is clean. The run's final state stays on `exp1/kit` and the tag `exp1-kit-final`.
+- **Review of the diff** (the `code-review` skill, medium effort). Not fixed, recorded as known limits of the kit implementation:
+  - the CLI refreshes the console's shared index with its own environment settings (the 22-role arm refuses when settings differ);
+  - a key whose runs are all re-keyed to another ticket can show as an empty column instead of "unknown";
+  - denied spawns are keyed by the raw ticket, runs by the effective one, so a re-keyed spawn can be counted on the wrong ticket;
+  - the page re-reads the session logs on each request (no cache);
+  - a denial in the middle of a run is forgotten when the run goes on, as the run's rule says ("the final state decides").
+- The 22-role implementation was not taken into `main`; it stays as the branch `exp1/r22` and the tag `exp1-r22-final`.
+
+## 7. Layout
 
 | Path | What |
 |---|---|
