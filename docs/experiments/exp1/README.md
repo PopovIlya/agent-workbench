@@ -50,9 +50,13 @@ Where the 22-role money went (`tokens.md`): requirements and analysis 25 %, test
 
 All money spent in the experiment (raw logs, estimates): kit 7.67 + 22 roles 117.42 + four aborted attempts 12.09 (`data/tokens-all.md`) + the ops session about 25.5 + the check session about 1.5 = about USD 164. The plan's budget was USD 100.
 
-### A measurement finding: the console undercounts the 22-role arm
+### A measurement finding: the console undercounted the 22-role arm
 
-The console's Tickets page showed USD 53.30 for the 22-role ticket (4 of 147 sub-agent runs). The console attributes a sub-agent run to a ticket by a leading `[KEY]` in the spawn description or a Jira-style key; the kit's descriptions start with the key, the coordinator's do not. For the kit the console and the raw logs agree to the cent. All spend watching during the run used the console figure, so the 22-role spend ran past its cap unnoticed. The raw-log numbers above are the source of record. The `compare` feature built in this experiment inherits the same attribution rule, as the brief required.
+The console's Tickets page showed USD 53.30 for the 22-role ticket (4 of 147 sub-agent runs); the raw logs say USD 117.42. The cause, found after the run: the coordinator's sub-agent prompts mention rule and case ids such as `CON-011` or `EP-018-01`. These look like Jira-style keys, so the console filed those runs under about 16 pseudo-tickets (`CON-011` USD 10.28, `CON-015` USD 7.07, and so on) instead of under `EXP1-R22C`. The kit's sub-agent descriptions start with `[EXP1-KITC]`, which wins, so for the kit the console and the raw logs agree to the cent.
+
+No code change is needed to fix this: starting the console with `AGENT_CONSOLE_KEY_PREFIXES=EXP1` (keys limited to that prefix) makes the sub-agent runs fall back to their parent's ticket, and the console then shows `EXP1-R22C` = USD 117.42 (main 51.97, sub-agents 65.45, 148 runs), equal to the raw-log script. The price: with that setting only keys with the listed prefixes are recognized.
+
+All spend watching during the run used the default console figure, so the 22-role spend ran past its cap unnoticed. The raw-log numbers in this document are the source of record. The `compare` feature built here uses the console's attribution, as the brief required, so its numbers for the 22-role ticket are right only with that setting.
 
 ## 4. What the independent check gave
 
@@ -74,7 +78,7 @@ Source: `data/real-logs-compare-kit.json`, `data/real-logs-compare-r22.json` (ea
 
 - Tokens, cost, wall time, active time, wait time (130 min), repeat rounds (15) and main share (0.66) for the kit ticket: both CLIs equal the raw-log script.
 - **Failed runs for the kit ticket: the kit's CLI reports 21 of 21 runs as failed; the 22-role CLI reports 0.** The kit counts a run as failed when it has no normal final reply, and every real kit run ends with a hand-back call, so every run is flagged. This is the risk the kit's own verifier warned about (L3 step 6), and neither the kit's tests nor the synthetic check set exposed it. The 22-role arm found and fixed this exact case during its review loops.
-- For the 22-role ticket both CLIs show the console's attributed figures (4 runs, 53.30 USD), not the raw total, because of the attribution rule above.
+- For the 22-role ticket both CLIs show the console's attributed figures (4 runs, 53.30 USD), not the raw total, because of the attribution described above (with `AGENT_CONSOLE_KEY_PREFIXES=EXP1` they would show 117.42).
 
 ## 5. What the numbers show and do not show
 
