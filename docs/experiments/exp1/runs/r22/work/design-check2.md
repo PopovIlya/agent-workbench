@@ -1,0 +1,4 @@
+# Design check 2 (test cases), EXP1-R22C — REJECT (written by coordinator from the checker's reply)
+design-check1 items 1-16 closed except the trace below; code facts checked (EP-029-16 arithmetic with ROUND_HALF_UP; EP-011-17 positive control via scope.subprocess.run, store.py:214, scope.py:126).
+1. CI-034-11 trace: EP-034-12 is page-only (c= ignored, 200); it does not run the CLI with three keys. qa.md line 316 "CI-034-11 tested in EP-034-12" is wrong, and so is EP-034-12's header claim of DT-034-11. CLI three-key behaviour is asserted twice (EP-031-04 ABC keys; DT-034-11 EXP1-AAA keys, "DT trace only" but full steps).
+Fix: qa.md line 316 -> CI-034-11 "tested in EP-031-04 (CLI)"; EP-034-12 trace = CI-034-12 + page half of CI-031-04 (drop DT-034-11); EP-031-04 trace adds CI-034-11 and DT-034-11; DT-034-11 becomes a pure pointer to EP-031-04 (no steps); one USAGE-HEAD expectation in the surviving case.

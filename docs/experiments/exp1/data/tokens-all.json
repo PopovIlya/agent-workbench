@@ -1,0 +1,719 @@
+{
+ "kit": {
+  "active_role_s": 2784.569000005722,
+  "by_model": {
+   "claude-sonnet-5-5": {
+    "cache_read": 13503150,
+    "cache_w1h": 0,
+    "cache_w5m": 1003046,
+    "cost": 7.674460999999996,
+    "input": 598,
+    "msgs": 270,
+    "output": 246502,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "kit-analyst": {
+    "cache_read": 940404,
+    "cache_w1h": 0,
+    "cache_w5m": 144604,
+    "cost": 0.8814127999999998,
+    "input": 66,
+    "msgs": 33,
+    "output": 33169
+   },
+   "kit-builder": {
+    "cache_read": 1450919,
+    "cache_w1h": 0,
+    "cache_w5m": 200851,
+    "cost": 1.4038712999999998,
+    "input": 100,
+    "msgs": 50,
+    "output": 61136
+   },
+   "kit-reviewer": {
+    "cache_read": 468821,
+    "cache_w1h": 0,
+    "cache_w5m": 92482,
+    "cost": 0.5055932000000001,
+    "input": 62,
+    "msgs": 31,
+    "output": 18050
+   },
+   "kit-security": {
+    "cache_read": 92350,
+    "cache_w1h": 0,
+    "cache_w5m": 58166,
+    "cost": 0.220483,
+    "input": 24,
+    "msgs": 12,
+    "output": 5655
+   },
+   "kit-test-designer": {
+    "cache_read": 2045412,
+    "cache_w1h": 0,
+    "cache_w5m": 165017,
+    "cost": 1.5193429,
+    "input": 84,
+    "msgs": 42,
+    "output": 69755
+   },
+   "kit-verifier": {
+    "cache_read": 54868,
+    "cache_w1h": 0,
+    "cache_w5m": 14108,
+    "cost": 0.09666359999999999,
+    "input": 10,
+    "msgs": 5,
+    "output": 5040
+   },
+   "main": {
+    "cache_read": 8450376,
+    "cache_w1h": 0,
+    "cache_w5m": 327818,
+    "cost": 3.047094199999999,
+    "input": 252,
+    "msgs": 97,
+    "output": 53697
+   }
+  },
+  "cost_main": 3.047094199999999,
+  "cost_sub": 4.6273668,
+  "cost_total": 7.674460999999999,
+  "files": 22,
+  "first": "2026-11-05T13:54:18.345000",
+  "interventions_seen": 6,
+  "last": "2026-11-05T16:59:09.315000",
+  "main_share_of_sub": 0.6584942002004248,
+  "messages": 270,
+  "repeat_rounds": 15,
+  "role_runs": {
+   "kit-analyst": 3,
+   "kit-builder": 6,
+   "kit-reviewer": 4,
+   "kit-security": 4,
+   "kit-test-designer": 3,
+   "kit-verifier": 1
+  },
+  "role_runs_total": 21,
+  "tokens": {
+   "cache_read": 13503150,
+   "cache_w1h": 0,
+   "cache_w5m": 1003046,
+   "input": 598,
+   "output": 246502
+  },
+  "wait_by_kind": {
+   "human": 7785.40700006485,
+   "ops": 0
+  },
+  "wait_gaps": 1,
+  "wait_s_over_2h": 7785.40700006485,
+  "wait_s_total": 7785.40700006485,
+  "wall_s": 11090.97000002861
+ },
+ "old:EXP1-CHECK": {
+  "active_role_s": 0,
+  "by_model": {
+   "claude-sonnet-5-5": {
+    "cache_read": 3983635,
+    "cache_w1h": 0,
+    "cache_w5m": 130021,
+    "cost": 1.5310714999999997,
+    "input": 96,
+    "msgs": 48,
+    "output": 40910,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "main": {
+    "cache_read": 3983635,
+    "cache_w1h": 0,
+    "cache_w5m": 130021,
+    "cost": 1.5310714999999997,
+    "input": 96,
+    "msgs": 48,
+    "output": 40910
+   }
+  },
+  "cost_main": 1.5310714999999997,
+  "cost_sub": 0,
+  "cost_total": 1.5310714999999997,
+  "files": 1,
+  "first": "2026-11-05T22:23:40.691000",
+  "interventions_seen": 0,
+  "last": "2026-11-05T22:39:31.775000",
+  "main_share_of_sub": null,
+  "messages": 48,
+  "repeat_rounds": 0,
+  "role_runs": {},
+  "role_runs_total": 0,
+  "tokens": {
+   "cache_read": 3983635,
+   "cache_w1h": 0,
+   "cache_w5m": 130021,
+   "input": 96,
+   "output": 40910
+  },
+  "wait_by_kind": {
+   "human": 0,
+   "ops": 0
+  },
+  "wait_gaps": 0,
+  "wait_s_over_2h": 0,
+  "wait_s_total": 0,
+  "wall_s": 951.0840001106262
+ },
+ "old:EXP1-KIT": {
+  "active_role_s": 2160.4090003967285,
+  "by_model": {
+   "claude-sonnet-5-5": {
+    "cache_read": 5523909,
+    "cache_w1h": 0,
+    "cache_w5m": 657391,
+    "cost": 4.010677299999999,
+    "input": 304,
+    "msgs": 139,
+    "output": 126181,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "kit-analyst": {
+    "cache_read": 798719,
+    "cache_w1h": 0,
+    "cache_w5m": 124842,
+    "cost": 0.7129367999999998,
+    "input": 44,
+    "msgs": 22,
+    "output": 24100
+   },
+   "kit-builder": {
+    "cache_read": 868755,
+    "cache_w1h": 0,
+    "cache_w5m": 134524,
+    "cost": 0.8745549999999999,
+    "input": 52,
+    "msgs": 26,
+    "output": 36439
+   },
+   "kit-reviewer": {
+    "cache_read": 216728,
+    "cache_w1h": 0,
+    "cache_w5m": 54742,
+    "cost": 0.2875526,
+    "input": 26,
+    "msgs": 13,
+    "output": 10730
+   },
+   "kit-security": {
+    "cache_read": 84280,
+    "cache_w1h": 0,
+    "cache_w5m": 39886,
+    "cost": 0.15834700000000002,
+    "input": 18,
+    "msgs": 9,
+    "output": 4174
+   },
+   "kit-test-designer": {
+    "cache_read": 849716,
+    "cache_w1h": 0,
+    "cache_w5m": 65485,
+    "cost": 0.6184457000000001,
+    "input": 40,
+    "msgs": 20,
+    "output": 28471
+   },
+   "main": {
+    "cache_read": 2705711,
+    "cache_w1h": 0,
+    "cache_w5m": 237912,
+    "cost": 1.3588402,
+    "input": 124,
+    "msgs": 49,
+    "output": 22267
+   }
+  },
+  "cost_main": 1.3588402,
+  "cost_sub": 2.6518371,
+  "cost_total": 4.010677299999999,
+  "files": 12,
+  "first": "2026-11-05T12:31:24.393000",
+  "interventions_seen": 2,
+  "last": "2026-11-05T13:32:35.331000",
+  "main_share_of_sub": 0.5124146577480193,
+  "messages": 139,
+  "repeat_rounds": 6,
+  "role_runs": {
+   "kit-analyst": 3,
+   "kit-builder": 3,
+   "kit-reviewer": 2,
+   "kit-security": 2,
+   "kit-test-designer": 1
+  },
+  "role_runs_total": 11,
+  "tokens": {
+   "cache_read": 5523909,
+   "cache_w1h": 0,
+   "cache_w5m": 657391,
+   "input": 304,
+   "output": 126181
+  },
+  "wait_by_kind": {
+   "human": 1501.204999923706,
+   "ops": 0
+  },
+  "wait_gaps": 2,
+  "wait_s_over_2h": 0,
+  "wait_s_total": 1501.204999923706,
+  "wall_s": 3670.938000202179
+ },
+ "old:EXP1-KITB": {
+  "active_role_s": 132.73499989509583,
+  "by_model": {
+   "claude-sonnet-5-5": {
+    "cache_read": 1008932,
+    "cache_w1h": 0,
+    "cache_w5m": 117142,
+    "cost": 0.7082134,
+    "input": 66,
+    "msgs": 30,
+    "output": 21344,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "kit-analyst": {
+    "cache_read": 485520,
+    "cache_w1h": 0,
+    "cache_w5m": 86042,
+    "cost": 0.46964900000000004,
+    "input": 30,
+    "msgs": 15,
+    "output": 15738
+   },
+   "main": {
+    "cache_read": 523412,
+    "cache_w1h": 0,
+    "cache_w5m": 31100,
+    "cost": 0.23856440000000004,
+    "input": 36,
+    "msgs": 15,
+    "output": 5606
+   }
+  },
+  "cost_main": 0.23856440000000004,
+  "cost_sub": 0.46964900000000004,
+  "cost_total": 0.7082134000000001,
+  "files": 3,
+  "first": "2026-11-05T13:37:36.197000",
+  "interventions_seen": 0,
+  "last": "2026-11-05T13:42:03.101000",
+  "main_share_of_sub": 0.5079631810139061,
+  "messages": 30,
+  "repeat_rounds": 1,
+  "role_runs": {
+   "kit-analyst": 2
+  },
+  "role_runs_total": 2,
+  "tokens": {
+   "cache_read": 1008932,
+   "cache_w1h": 0,
+   "cache_w5m": 117142,
+   "input": 66,
+   "output": 21344
+  },
+  "wait_by_kind": {
+   "human": 0,
+   "ops": 0
+  },
+  "wait_gaps": 0,
+  "wait_s_over_2h": 0,
+  "wait_s_total": 0,
+  "wall_s": 266.904000043869
+ },
+ "old:EXP1-R22": {
+  "active_role_s": 1721.1819996833801,
+  "by_model": {
+   "claude-opus-5-5": {
+    "cache_read": 5303409,
+    "cache_w1h": 0,
+    "cache_w5m": 398769,
+    "cost": 5.733630800000001,
+    "input": 286,
+    "msgs": 143,
+    "output": 133898,
+    "unpriced": 0
+   },
+   "claude-sonnet-5-5": {
+    "cache_read": 1339407,
+    "cache_w1h": 0,
+    "cache_w5m": 259154,
+    "cost": 1.0727704000000002,
+    "input": 82,
+    "msgs": 29,
+    "output": 15684,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "business-analyst": {
+    "cache_read": 739672,
+    "cache_w1h": 0,
+    "cache_w5m": 117939,
+    "cost": 1.7224214,
+    "input": 98,
+    "msgs": 49,
+    "output": 49220
+   },
+   "main": {
+    "cache_read": 1339407,
+    "cache_w1h": 0,
+    "cache_w5m": 259154,
+    "cost": 1.0727704000000002,
+    "input": 82,
+    "msgs": 29,
+    "output": 15684
+   },
+   "requirements-reviewer": {
+    "cache_read": 158900,
+    "cache_w1h": 0,
+    "cache_w5m": 52733,
+    "cost": 0.617409,
+    "input": 26,
+    "msgs": 13,
+    "output": 16093
+   },
+   "system-analyst": {
+    "cache_read": 4404837,
+    "cache_w1h": 0,
+    "cache_w5m": 228097,
+    "cost": 3.3938004000000004,
+    "input": 162,
+    "msgs": 81,
+    "output": 68585
+   }
+  },
+  "cost_main": 1.0727704000000002,
+  "cost_sub": 5.7336308,
+  "cost_total": 6.806401200000001,
+  "files": 11,
+  "first": "2026-11-05T12:31:32.185000",
+  "interventions_seen": 3,
+  "last": "2026-11-05T13:37:31.040000",
+  "main_share_of_sub": 0.18710140876179196,
+  "messages": 172,
+  "repeat_rounds": 7,
+  "role_runs": {
+   "business-analyst": 5,
+   "requirements-reviewer": 2,
+   "system-analyst": 3
+  },
+  "role_runs_total": 10,
+  "tokens": {
+   "cache_read": 6642816,
+   "cache_w1h": 0,
+   "cache_w5m": 657923,
+   "input": 368,
+   "output": 149582
+  },
+  "wait_by_kind": {
+   "human": 2127.9030001163483,
+   "ops": 0
+  },
+  "wait_gaps": 3,
+  "wait_s_over_2h": 0,
+  "wait_s_total": 2127.9030001163483,
+  "wall_s": 3958.8550000190735
+ },
+ "old:EXP1-R22B": {
+  "active_role_s": 124.0959997177124,
+  "by_model": {
+   "claude-sonnet-5-5": {
+    "cache_read": 574552,
+    "cache_w1h": 0,
+    "cache_w5m": 92933,
+    "cost": 0.5584669,
+    "input": 52,
+    "msgs": 23,
+    "output": 21112,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "business-analyst": {
+    "cache_read": 126903,
+    "cache_w1h": 0,
+    "cache_w5m": 36871,
+    "cost": 0.22045610000000002,
+    "input": 14,
+    "msgs": 7,
+    "output": 10287
+   },
+   "main": {
+    "cache_read": 396897,
+    "cache_w1h": 0,
+    "cache_w5m": 34470,
+    "cost": 0.2210464,
+    "input": 26,
+    "msgs": 11,
+    "output": 5544
+   },
+   "requirements-reviewer": {
+    "cache_read": 50752,
+    "cache_w1h": 0,
+    "cache_w5m": 21592,
+    "cost": 0.11696440000000001,
+    "input": 12,
+    "msgs": 5,
+    "output": 5281
+   }
+  },
+  "cost_main": 0.2210464,
+  "cost_sub": 0.3374205,
+  "cost_total": 0.5584669,
+  "files": 3,
+  "first": "2026-11-05T13:37:36.864000",
+  "interventions_seen": 0,
+  "last": "2026-11-05T13:41:51.934000",
+  "main_share_of_sub": 0.6551066102978331,
+  "messages": 23,
+  "repeat_rounds": 0,
+  "role_runs": {
+   "business-analyst": 1,
+   "requirements-reviewer": 1
+  },
+  "role_runs_total": 2,
+  "tokens": {
+   "cache_read": 574552,
+   "cache_w1h": 0,
+   "cache_w5m": 92933,
+   "input": 52,
+   "output": 21112
+  },
+  "wait_by_kind": {
+   "human": 0,
+   "ops": 0
+  },
+  "wait_gaps": 0,
+  "wait_s_over_2h": 0,
+  "wait_s_total": 0,
+  "wall_s": 255.0699999332428
+ },
+ "r22": {
+  "active_role_s": 22386.007999897003,
+  "by_model": {
+   "anthropic.claude-haiku-4-5-20251001-v1:0": {
+    "cache_read": 117647,
+    "cache_w1h": 0,
+    "cache_w5m": 21909,
+    "cost": 0.05830995,
+    "input": 89,
+    "msgs": 15,
+    "output": 3814,
+    "unpriced": 0
+   },
+   "claude-opus-5-5": {
+    "cache_read": 173821632,
+    "cache_w1h": 0,
+    "cache_w5m": 7728136,
+    "cost": 99.1794624000002,
+    "input": 3644,
+    "msgs": 1662,
+    "output": 1287994,
+    "unpriced": 0
+   },
+   "claude-sonnet-5-5": {
+    "cache_read": 25948052,
+    "cache_w1h": 0,
+    "cache_w5m": 2404425,
+    "cost": 18.1819629,
+    "input": 1200,
+    "msgs": 600,
+    "output": 697889,
+    "unpriced": 0
+   }
+  },
+  "by_role": {
+   "automation-engineer": {
+    "cache_read": 10820726,
+    "cache_w1h": 0,
+    "cache_w5m": 923396,
+    "cost": 7.4516231999999984,
+    "input": 544,
+    "msgs": 272,
+    "output": 297790
+   },
+   "builder": {
+    "cache_read": 6100754,
+    "cache_w1h": 0,
+    "cache_w5m": 439994,
+    "cost": 3.3339597999999993,
+    "input": 222,
+    "msgs": 111,
+    "output": 101338
+   },
+   "business-analyst": {
+    "cache_read": 6449314,
+    "cache_w1h": 0,
+    "cache_w5m": 762311,
+    "cost": 9.642009800000006,
+    "input": 558,
+    "msgs": 279,
+    "output": 226918
+   },
+   "environment-checker": {
+    "cache_read": 55540,
+    "cache_w1h": 0,
+    "cache_w5m": 18777,
+    "cost": 0.0918105,
+    "input": 20,
+    "msgs": 10,
+    "output": 3372
+   },
+   "hostile-verifier": {
+    "cache_read": 4636589,
+    "cache_w1h": 0,
+    "cache_w5m": 195929,
+    "cost": 3.4586268000000002,
+    "input": 216,
+    "msgs": 108,
+    "output": 77540
+   },
+   "lead-qa": {
+    "cache_read": 3377862,
+    "cache_w1h": 0,
+    "cache_w5m": 256909,
+    "cost": 2.7987814000000006,
+    "input": 166,
+    "msgs": 83,
+    "output": 41900
+   },
+   "main": {
+    "cache_read": 123329414,
+    "cache_w1h": 0,
+    "cache_w5m": 4277224,
+    "cost": 51.96613480000002,
+    "input": 1088,
+    "msgs": 384,
+    "output": 295489
+   },
+   "qa-analyst": {
+    "cache_read": 1738703,
+    "cache_w1h": 0,
+    "cache_w5m": 267806,
+    "cost": 3.440490600000001,
+    "input": 120,
+    "msgs": 60,
+    "output": 87662
+   },
+   "requirements-reviewer": {
+    "cache_read": 1541646,
+    "cache_w1h": 0,
+    "cache_w5m": 365108,
+    "cost": 3.6768612000000003,
+    "input": 208,
+    "msgs": 104,
+    "output": 77108
+   },
+   "reviewer": {
+    "cache_read": 19895963,
+    "cache_w1h": 0,
+    "cache_w5m": 721617,
+    "cost": 11.274949600000005,
+    "input": 558,
+    "msgs": 279,
+    "output": 184272
+   },
+   "security-engineer": {
+    "cache_read": 3252726,
+    "cache_w1h": 0,
+    "cache_w5m": 179587,
+    "cost": 2.9684122000000004,
+    "input": 168,
+    "msgs": 84,
+    "output": 70963
+   },
+   "system-analyst": {
+    "cache_read": 9599415,
+    "cache_w1h": 0,
+    "cache_w5m": 701645,
+    "cost": 9.953196000000002,
+    "input": 562,
+    "msgs": 281,
+    "output": 226142
+   },
+   "test-designer": {
+    "cache_read": 7404904,
+    "cache_w1h": 0,
+    "cache_w5m": 922883,
+    "cost": 6.425934299999999,
+    "input": 318,
+    "msgs": 159,
+    "output": 263711
+   },
+   "test-runner": {
+    "cache_read": 117647,
+    "cache_w1h": 0,
+    "cache_w5m": 21909,
+    "cost": 0.05830995,
+    "input": 89,
+    "msgs": 15,
+    "output": 3814
+   },
+   "verifier": {
+    "cache_read": 1566128,
+    "cache_w1h": 0,
+    "cache_w5m": 99375,
+    "cost": 0.8786350999999999,
+    "input": 96,
+    "msgs": 48,
+    "output": 31678
+   }
+  },
+  "cost_main": 51.96613480000002,
+  "cost_sub": 65.45360045000001,
+  "cost_total": 117.41973525000003,
+  "files": 148,
+  "first": "2026-11-05T13:54:47.265000",
+  "interventions_seen": 16,
+  "last": "2026-11-05T19:08:57.811000",
+  "main_share_of_sub": 0.7939385219869904,
+  "messages": 2277,
+  "repeat_rounds": 133,
+  "role_runs": {
+   "automation-engineer": 26,
+   "builder": 11,
+   "business-analyst": 27,
+   "environment-checker": 3,
+   "hostile-verifier": 3,
+   "lead-qa": 5,
+   "qa-analyst": 8,
+   "requirements-reviewer": 15,
+   "reviewer": 8,
+   "security-engineer": 3,
+   "system-analyst": 17,
+   "test-designer": 17,
+   "test-runner": 2,
+   "verifier": 2
+  },
+  "role_runs_total": 147,
+  "tokens": {
+   "cache_read": 199887331,
+   "cache_w1h": 0,
+   "cache_w5m": 10154470,
+   "input": 4933,
+   "output": 1989697
+  },
+  "wait_by_kind": {
+   "human": 0,
+   "ops": 65.86700010299683
+  },
+  "wait_gaps": 1,
+  "wait_s_over_2h": 0,
+  "wait_s_total": 65.86700010299683,
+  "wall_s": 18850.546000003815
+ }
+}

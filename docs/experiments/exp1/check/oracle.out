@@ -1,0 +1,10 @@
+CMPA-1 tokens per model (input, output, cache_read, cache_write):
+  sonnet-5-5: [3200, 850, 12000, 2500] cost 0.023550
+  opus-5-5: [3000, 600, 10000, 1000] cost 0.031000
+  cost total 0.054550, main 0.015500, sub-agents 0.039050, share main/sub 0.3969
+  role runs: 3 (builder 2, reviewer 1); failed 1 (the reviewer: no final reply); repeat rounds 1
+  wall: 10:00:00 to 12:30:30 = 9030 s (150.5 min -> 151 min)
+  active role time (sum of run durations): builder one 10:00:10-10:10:10 = 600 s; reviewer 10:11:05-10:16:05 = 300 s; builder two 10:17:00-10:20:00 = 180 s; total 1080 s = 18 min
+  wait: stops at 10:10:20 (next person message 10:10:50, gap 30 s -> 0), at 10:20:10 (-> 10:25:10, 300 s), at 10:25:20 (-> 12:30:20, 7500 s); total 7800 s = 130 min; over 2 h part 7500 s
+CMPB-1: one sub-agent run (reviewer), no main session. tokens sonnet: in 400, out 100, cache_read 1000, cache_write 300; cost 0.002750 ; failed 0; repeat 0 (its wall time is not checked)
+  main-session rows must say 'no main session', not zero

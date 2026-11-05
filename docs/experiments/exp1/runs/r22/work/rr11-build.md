@@ -1,0 +1,3 @@
+# Requirements review 11 (build decision rule edits), EXP1-R22C — PASS (written by coordinator from the reviewer's reply)
+CON-022 v12 (Q-041), CON-015 v9 (Q-044), Q-046 (running = failed, decided by answer 3; in-progress tickets show higher failed counts — tell the product owner), CON-011 v6 (Q-045), Q-042, Q-043: PASS.
+Non-blocking: 1 CON-022: does a stop with no timestamp still count as "the latest stop"? (Q-041 suggests yes; one sentence would make it testable). 2 CON-015: "consecutive" — suggested: a user record in between does not split a turn with the same message.id. 3 D2 "denial texts never matched" vs CON-015 denial marker: same outcome.

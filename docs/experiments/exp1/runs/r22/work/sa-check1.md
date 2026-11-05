@@ -1,0 +1,10 @@
+# System analyst check 1 (change file), EXP1-R22C — REJECT (written by coordinator from the checker's reply)
+Checks out: store.py line refs, fields/helpers, server guard + SECURITY_HEADERS on all routes, __main__ no-arg start, module list complete and minimal.
+1. Lock risk remedy wrong: rescan(wait=True) -> _scan_safely (store.py:195-202) swallows exceptions, sets progress["error"]. CLI must check st.progress["error"]/state after rescan and exit 1 with one line; direct catch only for Store() init. Add reverse effect: CLI ingest write transactions can make the running console hit "database is locked" and show the scan-error banner.
+2. Missing risk: Store.__init__ (store.py:100-105) runs _reset_derived() when AGENT_CONSOLE_TZ / AGENT_CONSOLE_KEY_PATTERNS differ; rebuild writes runs from the CLI's own env (repo_root(), TREE_ROOTS, WORKTREE_ROOTS, PROJECT_REMOTE); with AGENT_CONSOLE_CLAIMS_REPO ingest runs git fetch (scope.refresh_claims). CLI from another shell can rewrite what the running console serves. State how the CLI must behave (or accepted + README). Tests use the env fixture, never ~/.agent-console.
+3. Missing risk: duplicate spawn rows (tool_calls PK (run_id,id); resumed sessions copy turns). Count spawns once per tool_calls.id with a fixed row choice (earliest ts, then run_id); add a test case.
+4. CON-030 JSON shape: D when a side is a label ("no main session") — D must always have the full fixed subtree, each {"diff":"n/a","ratio":"n/a"}; name the JSON type of each T field.
+5. CON-030 determinism: ORDER BY on usage/tool_calls/runs reads (float sums order-dependent).
+6. Missing risk: page during first index (progress["initial"]/state=="indexing") may give 404 for an existing key or partial figures. Say how the page behaves; say whether the route calls st.rescan().
+7. Test gap: test_static does not cover compare_page.py HTML; test_compare_page.py runs the same checks (no <style, no style=, no inline <script>, nothing cross-origin) on 200/404/422 bodies.
+8. Minor: message_cost returns (float|None, Match); use message_cost(model,{...})[0], None = unpriced; token keys input, output, cache_read, cache_w5m, cache_w1h.
