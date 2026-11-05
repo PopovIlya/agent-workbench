@@ -10,7 +10,7 @@ from pathlib import Path
 
 PR = Pricing.load(Path("<workbench>/console/pricing.yaml"))
 ROOT = os.path.expanduser("~/.claude/projects")
-ARMS = {"kit": "-<projects>-awb-kit", "r22": "-<projects>-awb-r22"}
+ARMS = {"kit": "-Users-ilia-claude-project-awb-kit", "r22": "-Users-ilia-claude-project-awb-r22"}
 KEYS = ("input", "output", "cache_w5m", "cache_w1h", "cache_read")
 
 def ts(s):
@@ -59,6 +59,7 @@ def arm(name, mains=None):
     waits = []                      # (gap_s, kind)
     stops = 0
     runs = collections.Counter(); firsts = []; lasts = []
+    raw_runs = []
     for f in files:
         sub = "/subagents/" in f
         role = "main"
@@ -98,8 +99,9 @@ def arm(name, mains=None):
             elif r.get("type") == "user" and not sub:
                 k = is_person(r)
                 if k and pending_stop is not None and t:
-                    waits.append((ts(t) - pending_stop, k)); pending_stop = None
+                    waits.append((ts(t) - pending_stop, k, pending_stop, ts(t))); pending_stop = None
         if t0 is not None:
+            raw_runs.append({"file": os.path.basename(f)[:-6], "kind": "sub" if sub else "main", "role": role, "first_ts": t0, "last_ts": t1})
             per_file[f] = (role, t0, t1, sub)
             firsts.append(t0); lasts.append(t1)
     # tokens and cost
@@ -118,9 +120,10 @@ def arm(name, mains=None):
     main_cost = by_role["main"]["cost"] if "main" in by_role else 0.0
     sub_cost = sum(v["cost"] for k, v in by_role.items() if k != "main")
     tot = {k: sum(v[k] for v in by_model.values()) for k in KEYS}
-    waits_c = [(g, k) for g, k in waits if g >= 60]
+    waits_c = [(g, k) for g, k, _, _ in waits if g >= 60]
     active = sum(t1 - t0 for (role, t0, t1, sub) in per_file.values() if sub)
     return {
+        "_raw": {"messages": [(mid, r, m, t) for mid, (r, m, t) in seen.items()], "runs": raw_runs, "waits": waits},
         "files": len(files), "messages": len(seen),
         "role_runs": dict(runs), "role_runs_total": sum(runs.values()),
         "repeat_rounds": sum(n - 1 for n in runs.values() if n > 1),
@@ -134,35 +137,40 @@ def arm(name, mains=None):
         "wait_s_total": sum(g for g, _ in waits_c), "wait_gaps": len(waits_c),
         "wait_s_over_2h": sum(g for g, _ in waits_c if g > 7200),
         "wait_by_kind": {k: sum(g for g, kk in waits_c if kk == k) for k in ("human", "ops")},
-        "interventions_seen": len([1 for _, k in waits]),
+        "interventions_seen": len(waits),
         "first": datetime.datetime.fromtimestamp(min(firsts)).isoformat() if firsts else None,
         "last": datetime.datetime.fromtimestamp(max(lasts)).isoformat() if lasts else None,
     }
 
-out = {n: arm(n) for n in ARMS}
-if "--all-keys" in sys.argv:
-    groups = collections.defaultdict(list)
-    for f in sorted(glob.glob(ROOT + "/-<projects>-agent-workbench/*.jsonl")):
-        k = first_key(f)
-        if k and k.startswith("EXP1-"): groups[k].append(f)
-    for k, mains in sorted(groups.items()):
-        out["old:" + k] = arm(k, mains)
+def main():
+    out = {n: arm(n) for n in ARMS}
+    if "--all-keys" in sys.argv:
+        groups = collections.defaultdict(list)
+        for f in sorted(glob.glob(ROOT + "/-Users-ilia-claude-project-agent-workbench/*.jsonl")):
+            k = first_key(f)
+            if k and k.startswith("EXP1-"): groups[k].append(f)
+        for k, mains in sorted(groups.items()):
+            out["old:" + k] = arm(k, mains)
 
-json.dump(out, open(os.path.expanduser("~/exp1/tokens-all.json" if "--all-keys" in sys.argv else "~/exp1/tokens.json"), "w"), indent=1, sort_keys=True, default=str)
-def fm(s): return "%d min" % round(s / 60)
-lines = ["# Tokens, cost and time per arm (raw logs, one script: ~/exp1-private/count_tokens.py)", ""]
-for n, a in out.items():
-    lines += ["## " + n, "", "files %d, deduplicated messages %d, first %s, last %s" % (a["files"], a["messages"], a["first"], a["last"]),
-              "role runs %d (repeat rounds %d): %s" % (a["role_runs_total"], a["repeat_rounds"], a["role_runs"]),
-              "tokens: " + ", ".join("%s %d" % (k, v) for k, v in a["tokens"].items()),
-              "cost USD: total %.2f, main %.2f, sub-agents %.2f, main share of sub %s" % (a["cost_total"], a["cost_main"], a["cost_sub"], "%.2f" % a["main_share_of_sub"] if a["main_share_of_sub"] is not None else "no sub-agents"),
-              "wall %s, active role time %s, wait on a person %s (%d gaps, over 2 h: %s; by kind %s)" % (fm(a["wall_s"]), fm(a["active_role_s"]), fm(a["wait_s_total"]), a["wait_gaps"], fm(a["wait_s_over_2h"]), {k: fm(v) for k, v in a["wait_by_kind"].items()}),
-              "", "| model | msgs | input | output | cache write 5m | cache write 1h | cache read | cost |", "|---|---|---|---|---|---|---|---|"]
-    for m, v in a["by_model"].items():
-        lines.append("| %s | %d | %d | %d | %d | %d | %d | %.2f%s |" % (m, v["msgs"], v["input"], v["output"], v["cache_w5m"], v["cache_w1h"], v["cache_read"], v["cost"], " (%d unpriced)" % v["unpriced"] if v["unpriced"] else ""))
-    lines += ["", "| role | msgs | input | output | cache write | cache read | cost |", "|---|---|---|---|---|---|---|"]
-    for m, v in a["by_role"].items():
-        lines.append("| %s | %d | %d | %d | %d | %d | %.2f |" % (m, v["msgs"], v["input"], v["output"], v["cache_w5m"] + v["cache_w1h"], v["cache_read"], v["cost"]))
-    lines.append("")
-open(os.path.expanduser("~/exp1/tokens-all.md" if "--all-keys" in sys.argv else "~/exp1/tokens.md"), "w").write("\n".join(lines))
-print("\n".join(lines))
+    json.dump({k: {kk: vv for kk, vv in v.items() if kk != "_raw"} for k, v in out.items()}, open(os.path.expanduser("~/exp1/tokens-all.json" if "--all-keys" in sys.argv else "~/exp1/tokens.json"), "w"), indent=1, sort_keys=True, default=str)
+    def fm(s): return "%d min" % round(s / 60)
+    lines = ["# Tokens, cost and time per arm (raw logs, one script: ~/exp1-private/count_tokens.py)", ""]
+    for n, a in out.items():
+        lines += ["## " + n, "", "files %d, deduplicated messages %d, first %s, last %s" % (a["files"], a["messages"], a["first"], a["last"]),
+                  "role runs %d (repeat rounds %d): %s" % (a["role_runs_total"], a["repeat_rounds"], a["role_runs"]),
+                  "tokens: " + ", ".join("%s %d" % (k, v) for k, v in a["tokens"].items()),
+                  "cost USD: total %.2f, main %.2f, sub-agents %.2f, main share of sub %s" % (a["cost_total"], a["cost_main"], a["cost_sub"], "%.2f" % a["main_share_of_sub"] if a["main_share_of_sub"] is not None else "no sub-agents"),
+                  "wall %s, active role time %s, wait on a person %s (%d gaps, over 2 h: %s; by kind %s)" % (fm(a["wall_s"]), fm(a["active_role_s"]), fm(a["wait_s_total"]), a["wait_gaps"], fm(a["wait_s_over_2h"]), {k: fm(v) for k, v in a["wait_by_kind"].items()}),
+                  "", "| model | msgs | input | output | cache write 5m | cache write 1h | cache read | cost |", "|---|---|---|---|---|---|---|---|"]
+        for m, v in a["by_model"].items():
+            lines.append("| %s | %d | %d | %d | %d | %d | %d | %.2f%s |" % (m, v["msgs"], v["input"], v["output"], v["cache_w5m"], v["cache_w1h"], v["cache_read"], v["cost"], " (%d unpriced)" % v["unpriced"] if v["unpriced"] else ""))
+        lines += ["", "| role | msgs | input | output | cache write | cache read | cost |", "|---|---|---|---|---|---|---|"]
+        for m, v in a["by_role"].items():
+            lines.append("| %s | %d | %d | %d | %d | %d | %.2f |" % (m, v["msgs"], v["input"], v["output"], v["cache_w5m"] + v["cache_w1h"], v["cache_read"], v["cost"]))
+        lines.append("")
+    open(os.path.expanduser("~/exp1/tokens-all.md" if "--all-keys" in sys.argv else "~/exp1/tokens.md"), "w").write("\n".join(lines))
+    print("\n".join(lines))
+
+
+if __name__ == "__main__":
+    main()
